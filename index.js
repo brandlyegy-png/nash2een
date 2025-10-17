@@ -4,6 +4,25 @@ import fetch from "node-fetch";
 const app = express();
 app.use(express.json());
 
+// ✅ تحقق من Webhook من فيسبوك
+app.get("/webhook", (req, res) => {
+  const VERIFY_TOKEN = "zen123"; // اختار أي كلمة سر، نفس اللي هتحطه في Facebook Developer
+
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode && token) {
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("✅ Webhook verified successfully");
+      res.status(200).send(challenge);
+    } else {
+      res.sendStatus(403);
+    }
+  }
+});
+
+// ✅ استقبال الرسائل من فيسبوك
 app.post("/webhook", async (req, res) => {
   const body = req.body;
 
@@ -110,7 +129,7 @@ async function sendText(senderId, text) {
   });
 }
 
-// 🧠 قائمة رئيسية فيها أزرار (Quick Replies)
+// 🧠 القائمة الرئيسية (Quick Replies)
 async function sendQuickMenu(senderId) {
   const message = {
     text: `مع حضرتك كابتن زين مدير التسويق في ناشئين مصر 🤝
