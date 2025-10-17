@@ -1,19 +1,13 @@
 {
-
-
-  "name": "nash2een-bot",
+  "name": "nash2een-chatbot",
   "version": "1.0.0",
-  "description": "Messenger bot for Nash2een Masr",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "node-fetch": "^3.3.2"
   }
 }
-
-
-
