@@ -1,61 +1,78 @@
 import express from "express";
-import bodyParser from "body-parser";
+import fetch from "node-fetch";
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-// حط هنا رمز التحقق اللي هتكتبه فى فيسبوك
-const VERIFY_TOKEN = "my_verify_token_123";
+// ✅ صفحة البداية (اختيارية)
+app.get("/", (req, res) => {
+  res.send("✅ Facebook Messenger Bot is running!");
+});
 
-// المسار الخاص بالتحقق من الـ Webhook
+// ✅ للتحقق من Webhook عند الربط مع Facebook
 app.get("/webhook", (req, res) => {
+  const VERIFY_TOKEN = "123456"; // استبدلها بنفس التوكين اللي استخدمته في إعداد Webhook
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode && token) {
-    if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      console.log("WEBHOOK_VERIFIED");
-      res.status(200).send(challenge);
-    } else {
-      res.sendStatus(403);
-    }
+  if (mode && token === VERIFY_TOKEN) {
+    console.log("WEBHOOK_VERIFIED");
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
   }
 });
 
-// استقبال الرسائل من Messenger
-app.post("/webhook", (req, res) => {
+// ✅ استقبال الرسائل من فيسبوك
+app.post("/webhook", async (req, res) => {
   const body = req.body;
 
   if (body.object === "page") {
-    body.entry.forEach((entry) => {
-      const event = entry.messaging[0];
-      const senderId = event.sender.id;
+    for (const entry of body.entry) {
+      const webhookEvent = entry.messaging[0];
+      console.log("Received message:", webhookEvent.message?.text, "from", webhookEvent.sender.id);
 
-      if (event.message && event.message.text) {
-        const text = event.message.text;
-        console.log(`Received message: ${text} from ${senderId}`);
-        sendMessage(senderId, "أهلاً بك 👋! شكرًا على رسالتك 😊");
+      const senderId = webhookEvent.sender.id;
+      const messageText = webhookEvent.message?.text || "";
+
+      // ✅ رد تلقائي بسيط
+      if (messageText) {
+        await sendMessage(senderId, " 0000 أهلاً بك 👋! شكرًا على رسالتك 😊");
       }
-    });
+    }
+
     res.status(200).send("EVENT_RECEIVED");
   } else {
     res.sendStatus(404);
   }
 });
 
-// دالة لإرسال الرسالة إلى المستخدم
-async function sendMessage(senderId, message) {
-  const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN; // نخليها متغير بيئة فى Vercel
+// ✅ دالة إرسال الرسائل إلى المستخدمين
+async function sendMessage(senderId, text) {
+  const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 
-  await fetch(`https://graph.facebook.com/v17.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      recipient: { id: senderId },
-      message: { text: message },
-    }),
-  });
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient: { id: senderId },
+          message: { text },
+        }),
+      }
+    );
+
+    const data = await response.json();
+    console.log("Send message response:", data);
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
 }
 
-app.listen(3000, () => console.log("Bot is running"));
+// ✅ شغل السيرفر على Vercel
+app.listen(3000, () => console.log("✅ Server is running on port 3000"));
+
+export default app;
