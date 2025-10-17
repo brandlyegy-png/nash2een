@@ -1,6 +1,4 @@
 {
-  "scripts": 
-  "start": "node index.js"
 
 
   "name": "nash2een-bot",
@@ -16,5 +14,6 @@
     "node-fetch": "^3.3.2"
   }
 }
+
 
 
