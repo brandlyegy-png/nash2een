@@ -1,4 +1,8 @@
 {
+  "scripts": {
+  "start": "node index.js"
+}
+
   "name": "nash2een-bot",
   "version": "1.0.0",
   "description": "Messenger bot for Nash2een Masr",
@@ -12,3 +16,4 @@
     "node-fetch": "^3.3.2"
   }
 }
+
