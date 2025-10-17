@@ -6,15 +6,14 @@ app.use(express.json());
 
 // ✅ تحقق من Webhook من فيسبوك
 app.get("/webhook", (req, res) => {
-  const VERIFY_TOKEN = "zen123"; // اختار أي كلمة سر، نفس اللي هتحطه في Facebook Developer
-
+  const VERIFY_TOKEN = "zen123"; // غيرها لو عايز بكلمة سر خاصة بيك
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
   if (mode && token) {
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      console.log("✅ Webhook verified successfully");
+      console.log("Webhook verified successfully ✅");
       res.status(200).send(challenge);
     } else {
       res.sendStatus(403);
@@ -27,7 +26,7 @@ app.post("/webhook", async (req, res) => {
   const body = req.body;
 
   if (body.object === "page") {
-    body.entry.forEach(async (entry) => {
+    for (const entry of body.entry) {
       const event = entry.messaging[0];
       const senderId = event.sender.id;
 
@@ -54,7 +53,7 @@ app.post("/webhook", async (req, res) => {
             await sendQuickMenu(senderId);
         }
       }
-    });
+    }
 
     res.sendStatus(200);
   } else {
@@ -62,7 +61,7 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// 🧩 الرسائل
+// ✅ رسائل الفروع
 function branchAbbasia() {
   return `لو هتشرفني يوم الاثنين القادم
 
@@ -117,9 +116,10 @@ function branchQalyoubia() {
 للقائمة الرئيسية اضغط 0`;
 }
 
-// 📨 إرسال رسالة نصية
+// ✅ إرسال رسالة نصية
 async function sendText(senderId, text) {
-  await fetch(`https://graph.facebook.com/v21.0/me/messages?access_token=${process.env.PAGE_ACCESS_TOKEN}`, {
+  const token = process.env.PAGE_ACCESS_TOKEN;
+  await fetch(`https://graph.facebook.com/v21.0/me/messages?access_token=${token}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -129,8 +129,9 @@ async function sendText(senderId, text) {
   });
 }
 
-// 🧠 القائمة الرئيسية (Quick Replies)
+// ✅ القائمة الرئيسية
 async function sendQuickMenu(senderId) {
+  const token = process.env.PAGE_ACCESS_TOKEN;
   const message = {
     text: `مع حضرتك كابتن زين مدير التسويق في ناشئين مصر 🤝
 
@@ -144,7 +145,7 @@ async function sendQuickMenu(senderId) {
     ],
   };
 
-  await fetch(`https://graph.facebook.com/v21.0/me/messages?access_token=${process.env.PAGE_ACCESS_TOKEN}`, {
+  await fetch(`https://graph.facebook.com/v21.0/me/messages?access_token=${token}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
